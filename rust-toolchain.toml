@@ -1,0 +1,5 @@
+[toolchain]
+components = ["cargo", "clippy", "rustfmt"]
+targets = [
+    "x86_64-unknown-linux-musl",
+]

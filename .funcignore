@@ -1,0 +1,14 @@
+__azurite_db*__.json
+__blobstorage__
+__queuestorage__
+.cargo
+.cspell.json
+.devcontainer
+.editorconfig
+.git*
+.vscode
+Cargo.*
+local.settings.json
+rust-toolchain.toml
+target
+!target/release/handler

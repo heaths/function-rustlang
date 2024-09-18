@@ -1,0 +1,13 @@
+[package]
+name = "handler"
+version = "0.1.0"
+edition = "2021"
+authors = [
+    "Heath Stewart (https://github.com/heaths)",
+]
+description = "Azure Functions implementation in Rust"
+publish = false
+
+[dependencies]
+tokio = { version = "1.40.0", features = ["macros", "rt-multi-thread"] }
+warp = "0.3.7"

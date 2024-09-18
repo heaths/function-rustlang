@@ -1,0 +1,23 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "useGitignore": true,
+  "ignorePaths": [
+    ".cspell.json",
+    ".devcontainer/**",
+    ".funcignore"
+  ],
+  "words": [
+    "clippy",
+    "funcignore",
+    "rustfmt"
+  ],
+  "overrides": [
+    {
+      "filename": "**/*.md",
+      "dictionaries": [
+        "rust"
+      ]
+    }
+  ]
+}

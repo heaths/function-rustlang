@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "editorconfig.editorconfig",
+    "ms-azuretools.vscode-azurefunctions",
+    "rust-lang.rust-analyzer",
+    "streetsidesoftware.code-spell-checker",
+    "vadimcn.vscode-lldb"
+  ]
+}

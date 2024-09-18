@@ -1,0 +1,32 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "func",
+      "label": "host",
+      "command": "host start",
+      "dependsOn": [
+        "build"
+      ],
+      "options": {
+        "env": {
+          "AzureFunctionsJobHost__customHandler__description__defaultExecutablePath": "target/debug/handler"
+        }
+      },
+      "problemMatcher": "$func-watch",
+      "isBackground": true
+    },
+    {
+      "type": "cargo",
+      "label": "build",
+      "command": "build",
+      "problemMatcher": [
+        "$rustc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}
