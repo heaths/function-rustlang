@@ -1,6 +1,11 @@
 {
   "name": "Rust",
   "image": "mcr.microsoft.com/devcontainers/rust:1-bullseye",
+  "features": {
+    "ghcr.io/jlaundry/devcontainer-features/azure-functions-core-tools:1": {
+      "version": "4"
+    }
+  },
   "customizations": {
     "vscode": {
       "extensions": [
@@ -11,5 +16,6 @@
         "vadimcn.vscode-lldb"
       ]
     }
-  }
+  },
+  "postCreateCommand": "rustup show"
 }
