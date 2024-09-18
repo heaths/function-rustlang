@@ -11,3 +11,6 @@ publish = false
 [dependencies]
 tokio = { version = "1.40.0", features = ["macros", "rt-multi-thread"] }
 warp = "0.3.7"
+
+[dev-dependencies]
+reqwest = "0.12.7"

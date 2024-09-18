@@ -7,6 +7,20 @@
       "name": "handler",
       "program": "${workspaceFolder}/target/debug/handler",
       "preLaunchTask": "host"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "client example",
+      "cargo": {
+        "args": [
+          "build",
+          "--example",
+          "client"
+        ]
+      },
+      "args": [],
+      "preLaunchTask": "host"
     }
   ]
 }

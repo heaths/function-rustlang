@@ -9,7 +9,9 @@
   ],
   "words": [
     "clippy",
+    "customhandler",
     "funcignore",
+    "reqwest",
     "rustfmt"
   ],
   "overrides": [

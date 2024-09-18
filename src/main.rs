@@ -1,7 +1,8 @@
 // Copyright 2024 Heath Stewart.
 // Licensed under the MIT License. See LICENSE.txt in the project root for license information.
 
-use std::{collections::HashMap, env, net::Ipv4Addr};
+use handler::{default_port, hello};
+use std::{collections::HashMap, net::Ipv4Addr};
 use warp::{http::Response, Filter};
 
 #[tokio::main]
@@ -11,20 +12,13 @@ async fn main() {
         .and(warp::path("hello"))
         .and(warp::query::<HashMap<String, String>>())
         .map(|p: HashMap<String, String>| {
-            let response = Response::builder().header("content-type", "text/plain");
-            if let Some(name) = p.get("name") {
-                response.body(format!("Hello, {}!", name))
-            } else {
-                response.body(String::from("Hello, world!"))
-            }
+            let body = hello(p.get("name").map(|name| name.as_str()));
+            Response::builder()
+                .header("content-type", "text/plain")
+                .body(body)
         });
 
-    // cspell:ignore customhandler
-    let port: u16 = env::var("FUNCTIONS_CUSTOMHANDLER_PORT").map_or_else(
-        |_| 3000,
-        |val| val.parse().expect("custom handler port number"),
-    );
-
+    let port = default_port().expect("custom handler port number");
     warp::serve(hello_endpoint)
         .run((Ipv4Addr::LOCALHOST, port))
         .await
