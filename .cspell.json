@@ -12,7 +12,8 @@
     "customhandler",
     "funcignore",
     "reqwest",
-    "rustfmt"
+    "rustfmt",
+    "rustlang"
   ],
   "overrides": [
     {
