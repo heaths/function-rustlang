@@ -34,7 +34,7 @@ To deploy the Azure Functions app:
 4. Publish the `deploy.zip` created in the previous step using the resource group name and function app name used when provisioning:
 
    ```bash
-   # You can source these variables from the .env file azd created under .azure/{env-name}.
+   eval $(azd env get-values) # or source from .env file for environment under .azure/
    az functionapp deployment source config-zip -g $AZURE_RESOURCE_GROUP -n $AZURE_FUNCTIONAPP_NAME --src deploy.zip
    ```
 
