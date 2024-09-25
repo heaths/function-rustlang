@@ -6,36 +6,23 @@ param name string
 param location string = resourceGroup().location
 param tags object = {}
 param storageAccountType string
+
+var functionExtensionVersion = '~4'
+var functionRuntime = 'custom'
+var resourceToken = toLower(uniqueString(subscription().id, name, location))
 var siteConfig = {
-  appSettings: [
-    {
-      name: 'FUNCTIONS_EXTENSION_VERSION'
-      value: '~4'
-    }
-    {
-      name: 'FUNCTIONS_WORKER_RUNTIME'
-      value: 'custom'
-    }
-    {
-      name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
-      value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[0].value};EndpointSuffix=core.windows.net'
-    }
-    {
-      name: 'AzureWebJobsStorage'
-      value: 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[0].value};EndpointSuffix=core.windows.net'
-    }
-  ]
   cors: {
     allowedOrigins: [
       'https://portal.azure.com'
     ]
   }
-  linuxFxVersion: 'custom|~4'
+  linuxFxVersion: ''
   minTlsVersion: '1.2'
 }
+var storageConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[0].value};EndpointSuffix=core.windows.net'
 
 resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = {
-  name: 'st${name}'
+  name: substring('${name}${resourceToken}', 0, 24)
   location: location
   tags: tags
   sku: {
@@ -50,7 +37,7 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = {
 }
 
 resource plan 'Microsoft.Web/serverfarms@2023-12-01' = {
-  name: 'plan-${name}'
+  name: 'asp-${name}-${resourceToken}'
   location: location
   tags: tags
   sku: {
@@ -64,7 +51,7 @@ resource plan 'Microsoft.Web/serverfarms@2023-12-01' = {
 }
 
 resource func 'Microsoft.Web/sites@2023-12-01' = {
-  name: 'func-${name}'
+  name: name
   location: location
   tags: tags
   kind: 'functionapp,linux'
@@ -76,8 +63,24 @@ resource func 'Microsoft.Web/sites@2023-12-01' = {
     siteConfig: union(siteConfig, {
       appSettings: [
         {
+          name: 'FUNCTIONS_EXTENSION_VERSION'
+          value: functionExtensionVersion
+        }
+        {
+          name: 'FUNCTIONS_WORKER_RUNTIME'
+          value: functionRuntime
+        }
+        {
+          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
+          value: storageConnectionString
+        }
+        {
           name: 'WEBSITE_CONTENTSHARE'
           value: '${name}${uniqueString(storage.name, storage.location)}'
+        }
+        {
+          name: 'AzureWebJobsStorage'
+          value: storageConnectionString
         }
       ]
     })
@@ -106,12 +109,28 @@ resource func 'Microsoft.Web/sites@2023-12-01' = {
       siteConfig: union(siteConfig, {
         appSettings: [
           {
+            name: 'FUNCTIONS_EXTENSION_VERSION'
+            value: functionExtensionVersion
+          }
+          {
+            name: 'FUNCTIONS_WORKER_RUNTIME'
+            value: functionRuntime
+          }
+          {
+            name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
+            value: storageConnectionString
+          }
+          {
             name: 'WEBSITE_CONTENTSHARE'
             value: '${name}test${uniqueString(storage.name, storage.location)}'
           }
+          {
+            name: 'AzureWebJobsStorage'
+            value: storageConnectionString
+          }
         ]
       })
-      httpsOnly: true
+        httpsOnly: true
     }
 
     resource slotFtp 'basicPublishingCredentialsPolicies' = {
@@ -130,4 +149,5 @@ resource func 'Microsoft.Web/sites@2023-12-01' = {
   }
 }
 
+output name string = func.name
 output url string = 'https://${func.properties.defaultHostName}'

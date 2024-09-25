@@ -6,6 +6,7 @@ authors = [
     "Heath Stewart (https://github.com/heaths)",
 ]
 description = "Azure Functions implementation in Rust"
+rust-version = "1.81"
 publish = false
 
 [dependencies]

@@ -38,7 +38,6 @@ var allTags = union(
   },
   tags
 )
-var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 
 resource rg 'Microsoft.Resources/resourceGroups@2024-03-01' = {
   name: resourceGroupName
@@ -50,16 +49,17 @@ module api './app/api.bicep' = {
   scope: rg
   name: 'api'
   params: {
-    name: resourceToken
+    name: environmentName
     location: location
     tags: allTags
     storageAccountType: storageAccountType
   }
 }
 
-output AZURE_FUNCTIONS_URL string = api.outputs.url
+output AZURE_FUNCTIONAPP_NAME string = api.outputs.name
+output AZURE_FUNCTIONAPP_URL string = api.outputs.url
 output AZURE_LOCATION string = location
 output AZURE_PRINCIPAL_ID string = principalId
 output AZURE_RESOURCE_GROUP string = resourceGroupName
-output AZURE_SUBSCRIPTION_ID string = subscription().id
+output AZURE_SUBSCRIPTION_ID string = subscription().subscriptionId
 output AZURE_TENANT_ID string = tenant().tenantId
