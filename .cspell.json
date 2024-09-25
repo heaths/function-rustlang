@@ -11,8 +11,10 @@
     "clippy",
     "customhandler",
     "funcignore",
+    "functionapp",
     "reqwest",
-    "rustfmt"
+    "rustfmt",
+    "rustlang"
   ],
   "overrides": [
     {
