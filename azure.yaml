@@ -2,5 +2,27 @@
 name: function-rustlang
 requiredVersions:
   azd: '>= 1.10.1'
+
 metadata:
   template: function-rustlang
+
+hooks:
+  postrestore:
+    shell: sh
+    interactive: true
+    run: |
+      az --version
+
+  predeploy:
+    shell: sh
+    interactive: true
+    run: |
+      cargo build --release --target x86_64-unknown-linux-musl
+      zip deploy.zip host.json hello/function.json target/x86_64-unknown-linux-musl/release/handler
+      az functionapp deployment source config-zip -g $AZURE_RESOURCE_GROUP -n $AZURE_FUNCTIONAPP_NAME --src deploy.zip --only-show-errors
+
+  postup:
+    shell: sh
+    interactive: true
+    run: |
+      curl $AZURE_FUNCTIONAPP_URL/api/hello

@@ -11,7 +11,13 @@ You can [develop Azure Functions using Rust](https://learn.microsoft.com/azure/a
 
 ## Deployment
 
-To deploy the Azure Functions app:
+You can provision resource and deploy the app with a single command:
+
+```bash
+azd up
+```
+
+If you would like to better understand the process to adapt to your situation, you can use the following steps instead:
 
 1. Provision the function app and related resources:
 
@@ -19,7 +25,9 @@ To deploy the Azure Functions app:
    azd provision
    ```
 
-2. Build a release binary for the x86-64 linux msul target:
+   You can also deploy the `infra/main.bicep` template directly using the `az` CLI but `azd` handles authentication, if necessary, as well as reading any environment variables already set from previous deployments or by the host process.
+
+2. Build a release binary for the Functions linux runtime host image:
 
    ```bash
    cargo build --release --target x86_64-unknown-linux-musl

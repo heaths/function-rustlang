@@ -18,6 +18,14 @@
   ],
   "overrides": [
     {
+      "filename": "azure.yaml",
+      "words": [
+        "postrestore",
+        "predeploy",
+        "postup"
+      ]
+    },
+    {
       "filename": "**/*.md",
       "dictionaries": [
         "rust"

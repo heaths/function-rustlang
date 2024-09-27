@@ -100,54 +100,60 @@ resource func 'Microsoft.Web/sites@2023-12-01' = {
       allow: false
     }
   }
+}
+resource slot 'Microsoft.Web/sites/slots@2023-12-01' = {
+  name: 'test'
+  location: location
+  parent: func
+  properties: {
+    serverFarmId: plan.id
+    siteConfig: union(siteConfig, {
+      appSettings: [
+        {
+          name: 'FUNCTIONS_EXTENSION_VERSION'
+          value: functionExtensionVersion
+        }
+        {
+          name: 'FUNCTIONS_WORKER_RUNTIME'
+          value: functionRuntime
+        }
+        {
+          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
+          value: storageConnectionString
+        }
+        {
+          name: 'WEBSITE_CONTENTSHARE'
+          value: '${name}test${uniqueString(storage.name, storage.location)}'
+        }
+        {
+          name: 'AzureWebJobsStorage'
+          value: storageConnectionString
+        }
+      ]
+    })
+    httpsOnly: true
+  }
 
-  resource slot 'slots@2023-12-01' = {
-    name: 'test'
-    location: location
+  resource ftpSlot 'basicPublishingCredentialsPolicies' = {
+    name: 'ftp'
     properties: {
-      serverFarmId: plan.id
-      siteConfig: union(siteConfig, {
-        appSettings: [
-          {
-            name: 'FUNCTIONS_EXTENSION_VERSION'
-            value: functionExtensionVersion
-          }
-          {
-            name: 'FUNCTIONS_WORKER_RUNTIME'
-            value: functionRuntime
-          }
-          {
-            name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
-            value: storageConnectionString
-          }
-          {
-            name: 'WEBSITE_CONTENTSHARE'
-            value: '${name}test${uniqueString(storage.name, storage.location)}'
-          }
-          {
-            name: 'AzureWebJobsStorage'
-            value: storageConnectionString
-          }
-        ]
-      })
-        httpsOnly: true
+      allow: false
     }
+  }
 
-    resource slotFtp 'basicPublishingCredentialsPolicies' = {
-      name: 'ftp'
-      properties: {
-        allow: false
-      }
-    }
-
-    resource slotScm 'basicPublishingCredentialsPolicies' = {
-      name: 'scm'
-      properties: {
-        allow: false
-      }
+  resource scmSlot 'basicPublishingCredentialsPolicies' = {
+    name: 'scm'
+    properties: {
+      allow: false
     }
   }
 }
 
-output name string = func.name
-output url string = 'https://${func.properties.defaultHostName}'
+output func object = {
+  name: func.name
+  url: 'https://${func.properties.defaultHostName}'
+}
+output slot object = {
+  name: slot.name
+  url: 'https://${slot.properties.defaultHostName}'
+}
