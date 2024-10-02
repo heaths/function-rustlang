@@ -28,11 +28,11 @@ The [GitHub Actions] workflows in `.github/workflows` are defined as follows:
 
 #### Environments
 
-We'll create two environments: "test" and "production" to match our provisioned slot names.
+We'll create two environments: "staging" and "production" to match our provisioned slot names.
 
 1. In your project settings, click **Environments**.
 2. Create an environment named "production". Set the **Deployment branch and tags** to `main`. I recommend you also set required reviewers accordingly.
-3. Repeat the previous step to create an environment named "test". You do not need to set required reviewers.
+3. Repeat the previous step to create an environment named "staging". You do not need to set required reviewers.
 
 With your resources provisioned, you can set up [OpenID Connect][OIDC] to deploy to staging and production environments:
 
@@ -42,8 +42,8 @@ With your resources provisioned, you can set up [OpenID Connect][OIDC] to deploy
    2. Click **Federated credentials**.
    3. Click **Add credential**.
    4. Select the **GitHub Actions deploying Azure resources** scenario.
-   5. Fill in the information requested including the environment name e.g., "test" we created above.
-   6. Name your credential to identify which environment will require it e.g., "test".
+   5. Fill in the information requested including the environment name e.g., "staging" we created above.
+   6. Name your credential to identify which environment will require it e.g., "staging".
    7. Click **Add**.
    8. Repeat the previous steps for the "production" environment.
 3. For each environment created above, add the following [environment secrets][GitHub secrets]:
@@ -57,7 +57,7 @@ With your resources provisioned, you can set up [OpenID Connect][OIDC] to deploy
    Alternatively, you could set these once as repository secrets if they have the same value. This example demonstrates configuration in case different environments are in different subscriptions.
 4. Add [GitHub secrets] for your provisioned `AZURE_RESOURCE_GROUP` and `AZURE_FUNCTIONAPP_NAME`. These were output when you ran `azd provision`.
 
-Now when you merge to `main` the Azure Functions app will deploy first to your test (staging) environment, test that the application is running and responds with the expected text, then deploys to your production environment.
+Now when you merge to `main` the Azure Functions app will deploy first to your staging environment, test that the application is running and responds with the expected text, then deploys to your production environment.
 
 ### Manual
 

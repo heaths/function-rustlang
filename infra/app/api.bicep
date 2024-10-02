@@ -102,7 +102,7 @@ resource func 'Microsoft.Web/sites@2023-12-01' = {
   }
 }
 resource slot 'Microsoft.Web/sites/slots@2023-12-01' = {
-  name: 'test'
+  name: 'staging'
   location: location
   parent: func
   properties: {
@@ -123,7 +123,7 @@ resource slot 'Microsoft.Web/sites/slots@2023-12-01' = {
         }
         {
           name: 'WEBSITE_CONTENTSHARE'
-          value: '${name}test${uniqueString(storage.name, storage.location)}'
+          value: '${name}staging${uniqueString(storage.name, storage.location)}'
         }
         {
           name: 'AzureWebJobsStorage'
