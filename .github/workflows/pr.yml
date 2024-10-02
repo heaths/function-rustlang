@@ -1,0 +1,39 @@
+name: pr
+on:
+  pull_request:
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CARGO_INCREMENTAL: 1
+  RUSTFLAGS: -Dwarnings
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Setup
+      # Install everything in rust-toolchain.toml and print versions.
+      run: rustup show
+    - name: Check formatting
+      run: cargo fmt --all -- --check
+    - name: Lint
+      run: cargo clippy --all-features --all-targets --no-deps --workspace
+    - name: Build documentation
+      run: cargo doc --all-features --no-deps --workspace
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup
+        # Install everything in rust-toolchain.toml and print versions.
+        run: rustup show
+      - name: Test
+        run: cargo test --all-features --workspace
+
