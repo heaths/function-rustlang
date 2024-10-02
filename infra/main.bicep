@@ -58,8 +58,8 @@ module api './app/api.bicep' = {
 
 output AZURE_FUNCTIONAPP_NAME string = api.outputs.func.name
 output AZURE_FUNCTIONAPP_URL string = api.outputs.func.url
-output AZURE_FUNCTIONAPP_SLOT_NAME string = api.outputs.slot.name
-output AZURE_FUNCTIONAPP_SLOT_URL string = api.outputs.slot.url
+output AZURE_FUNCTIONAPP_STAGING_NAME string = api.outputs.slot.name
+output AZURE_FUNCTIONAPP_STAGING_URL string = api.outputs.slot.url
 output AZURE_LOCATION string = location
 output AZURE_PRINCIPAL_ID string = principalId
 output AZURE_RESOURCE_GROUP string = resourceGroupName

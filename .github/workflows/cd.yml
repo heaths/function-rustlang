@@ -21,6 +21,7 @@ permissions:
 
 jobs:
   deploy:
+    environment: staging
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -32,17 +33,23 @@ jobs:
         run: |
           cargo build --release --target x86_64-unknown-linux-musl
           zip "$RUNNER_TEMP/deploy.zip" host.json hello/function.json target/x86_64-unknown-linux-musl/release/handler
+      - name: Upload deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy
+          path: "$RUNNER_TEMP/deploy.zip"
+          overwrite: true
       - name: Log into staging environment
-        uses: Azure/login@v2
+        uses: azure/login@v2
         with:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
       - name: Deploy to staging environment
-        id: deploy-test
+        id: stage
         run: |
-          az functionapp deployment source config-zip --subscription "$AZURE_SUBSCRIPTION_ID" -g "$AZURE_RESOURCE_GROUP" -n "$AZURE_FUNCTIONAPP_NAME" --slot test --src "$RUNNER_TEMP/deploy.zip"
-          az functionapp show --subscription "$AZURE_SUBSCRIPTION_ID" -g "$AZURE_RESOURCE_GROUP" -n "$AZURE_FUNCTIONAPP_NAME" --slot test --output json | jq -r '"AZURE_HOSTNAME=" + .defaultHostName' >> "$GITHUB_OUTPUT"
+          az functionapp deployment source config-zip --subscription "$AZURE_SUBSCRIPTION_ID" -g "$AZURE_RESOURCE_GROUP" -n "$AZURE_FUNCTIONAPP_NAME" --slot staging --src "$RUNNER_TEMP/deploy.zip"
+          az functionapp show --subscription "$AZURE_SUBSCRIPTION_ID" -g "$AZURE_RESOURCE_GROUP" -n "$AZURE_FUNCTIONAPP_NAME" --slot staging --output json | jq -r '"AZURE_HOSTNAME=" + .defaultHostName' >> "$GITHUB_OUTPUT"
         env:
           AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
@@ -53,4 +60,4 @@ jobs:
             exit 1
           fi
         env:
-          AZURE_HOSTNAME: ${{ steps.deploy-test.outputs.AZURE_HOSTNAME }}
+          AZURE_HOSTNAME: ${{ steps.stage.outputs.AZURE_HOSTNAME }}
