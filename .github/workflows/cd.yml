@@ -20,8 +20,7 @@ permissions:
   id-token: write
 
 jobs:
-  deploy:
-    environment: staging
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -32,13 +31,23 @@ jobs:
       - name: Build
         run: |
           cargo build --release --target x86_64-unknown-linux-musl
-          zip "$RUNNER_TEMP/deploy.zip" host.json hello/function.json target/x86_64-unknown-linux-musl/release/handler
+          zip deploy.zip host.json hello/function.json target/x86_64-unknown-linux-musl/release/handler
       - name: Upload deployment artifact
         uses: actions/upload-artifact@v4
         with:
           name: deploy
-          path: "$RUNNER_TEMP/deploy.zip"
+          path: deploy.zip
           overwrite: true
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment: staging
+    steps:
+      - name: Download deployment artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deploy
       - name: Log into staging environment
         uses: azure/login@v2
         with:
@@ -48,7 +57,7 @@ jobs:
       - name: Deploy to staging environment
         id: stage
         run: |
-          az functionapp deployment source config-zip --subscription "$AZURE_SUBSCRIPTION_ID" -g "$AZURE_RESOURCE_GROUP" -n "$AZURE_FUNCTIONAPP_NAME" --slot staging --src "$RUNNER_TEMP/deploy.zip"
+          az functionapp deployment source config-zip --subscription "$AZURE_SUBSCRIPTION_ID" -g "$AZURE_RESOURCE_GROUP" -n "$AZURE_FUNCTIONAPP_NAME" --slot staging --src deploy.zip
           az functionapp show --subscription "$AZURE_SUBSCRIPTION_ID" -g "$AZURE_RESOURCE_GROUP" -n "$AZURE_FUNCTIONAPP_NAME" --slot staging --output json | jq -r '"AZURE_HOSTNAME=" + .defaultHostName' >> "$GITHUB_OUTPUT"
         env:
           AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
