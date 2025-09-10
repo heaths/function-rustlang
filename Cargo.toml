@@ -14,4 +14,5 @@ tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread"] }
 warp = { version = "0.4.2", features = ["server"] }
 
 [dev-dependencies]
+clap = { version = "4.5.47", features = ["cargo"] }
 reqwest = "0.12.23"
