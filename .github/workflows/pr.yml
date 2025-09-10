@@ -20,12 +20,15 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
     - name: Setup
-      # Install everything in rust-toolchain.toml and print versions.
-      run: rustup show
+      run: rustup install
     - name: Check formatting
       run: cargo fmt --all -- --check
     - name: Lint
       run: cargo clippy --all-features --all-targets --no-deps --workspace
+    - name: Check spelling
+      uses: streetsidesoftware/cspell-action@v7
+      with:
+        config: .cspell.json
     - name: Build documentation
       run: cargo doc --all-features --no-deps --workspace
 
@@ -35,8 +38,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup
-        # Install everything in rust-toolchain.toml and print versions.
-        run: rustup show
+        run: rustup install
       - name: Test
         run: cargo test --all-features --workspace
 
