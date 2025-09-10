@@ -5,8 +5,7 @@ You can [develop Azure Functions using Rust](https://learn.microsoft.com/azure/a
 ## Prerequisites
 
 * [Azure Developer CLI][azd]
-* [Rust](https://www.rust-lang.org)
-  (*Tested against 1.81 but any recent version should work.*)
+* [Rust](https://www.rust-lang.org) 1.82 or newer
 * (Optional) [Azure Functions CLI][func]
 
 ## Deployment
@@ -30,7 +29,7 @@ The [GitHub Actions] workflows in `.github/workflows` are defined as follows:
 
 We'll create two environments: "staging" and "production" to match our provisioned slot names.
 
-1. In your project settings, click **Environments**.
+1. In your GitHub project settings, click **Environments**.
 2. Create an environment named "production". Set the **Deployment branch and tags** to `main`. I recommend you also set required reviewers accordingly.
 3. Repeat the previous step to create an environment named "staging". You do not need to set required reviewers.
 
@@ -48,11 +47,11 @@ With your resources provisioned, you can set up [OpenID Connect][OIDC] to deploy
    8. Repeat the previous steps for the "production" environment.
 3. For each environment created above, add the following [environment secrets][GitHub secrets]:
 
-   Variable | Description
-   --- | ---
+   Variable                | Description
+   ----------------------- | -----------
    `AZURE_SUBSCRIPTION_ID` | The subscription ID to which you registered the application above.
-   `AZURE_TENANT_ID` | The tenant ID of the application.
-   `AZURE_CLIENT_ID` | The client ID of the application.
+   `AZURE_TENANT_ID`       | The tenant ID of the application.
+   `AZURE_CLIENT_ID`       | The client ID of the application.
 
    Alternatively, you could set these once as repository secrets if they have the same value. This example demonstrates configuration in case different environments are in different subscriptions.
 4. Add [GitHub secrets] for your provisioned `AZURE_RESOURCE_GROUP` and `AZURE_FUNCTIONAPP_NAME`. These were output when you ran `azd provision`.

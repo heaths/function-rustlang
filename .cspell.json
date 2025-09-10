@@ -8,21 +8,41 @@
     ".funcignore"
   ],
   "words": [
+    "bicepparam",
     "clippy",
     "customhandler",
     "funcignore",
     "functionapp",
     "reqwest",
     "rustfmt",
-    "rustlang"
+    "rustlang",
+    "rustup"
   ],
   "overrides": [
+    {
+      "filename": ".github/workflows/**",
+      "words": [
+        "codeowners",
+        "dwarnings",
+        "rustflags"
+      ]
+    },
     {
       "filename": "azure.yaml",
       "words": [
         "postrestore",
         "predeploy",
         "postup"
+      ]
+    },
+    {
+      "filename": "infra/**",
+      "words": [
+        "contentazurefileconnectionstring",
+        "contentshare",
+        "serverfarms",
+        "ragrs",
+        "westus"
       ]
     },
     {
