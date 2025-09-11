@@ -74,11 +74,20 @@ resource blobDataContributor 'Microsoft.Authorization/roleAssignments@2022-04-01
   }
 }
 
-resource blobDataReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource funcDataReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(name, func.name, 'SystemAssigned', blobDataReaderDef)
   scope: storage
   properties: {
     principalId: func.identity.principalId
+    roleDefinitionId: blobDataReaderDef
+  }
+}
+
+resource slotDataReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(name, func::slot.name, 'SystemAssigned', blobDataReaderDef)
+  scope: storage
+  properties: {
+    principalId: func::slot.identity.principalId
     roleDefinitionId: blobDataReaderDef
   }
 }
@@ -143,6 +152,9 @@ resource func 'Microsoft.Web/sites@2024-11-01' = {
   resource slot 'slots' = {
     name: 'staging'
     location: location
+    identity: {
+      type: 'SystemAssigned'
+    }
     properties: {
       serverFarmId: plan.id
       siteConfig: union(siteConfig, {

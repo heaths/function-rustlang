@@ -38,7 +38,19 @@ With your resources provisioned, you can set up [OpenID Connect][OIDC] to deploy
 
 1. [Register an application](https://learn.microsoft.com/entra/identity-platform/howto-create-service-principal-portal) to log in from GitHub Actions. You can leave the redirect URL blank.
 
-2. [Harden access](https://docs.github.com/actions/concepts/security/openid-connect#configuring-the-oidc-trust-with-the-cloud) when adding new client secrets:
+2. Copy the application ID and assign it to the "Storage Blob Data Contributor" role e.g.,
+
+   ```sh
+   az role assignment create --assignee "{AppId}" --role 'Storage Blob Data Reader' --scope "/subscriptions/$AZURE_SUBSCRIPTION_ID/resourceGroups/$AZURE_RESOURCE_GROUP"
+   ```
+
+   Run the following to find the `AppId` if you need help:
+
+   ```sh
+   az ad sp list --show-mine --output table
+   ```
+
+3. [Harden access](https://docs.github.com/actions/concepts/security/openid-connect#configuring-the-oidc-trust-with-the-cloud) when adding new client secrets:
    1. Under **Managed**, click on **Certificates and secrets**.
    2. Click **Federated credentials**.
    3. Click **Add credential**.
@@ -48,7 +60,7 @@ With your resources provisioned, you can set up [OpenID Connect][OIDC] to deploy
    7. Click **Add**.
    8. Repeat the previous steps for the "production" environment.
 
-3. For each environment created above, add the following [environment secrets][GitHub secrets]:
+4. For each environment created above, add the following [environment secrets][GitHub secrets]:
 
    Variable                | Description
    ----------------------- | -----------
@@ -58,7 +70,7 @@ With your resources provisioned, you can set up [OpenID Connect][OIDC] to deploy
 
    Alternatively, you could set these once as repository secrets if they have the same value. This example demonstrates configuration in case different environments are in different subscriptions.
 
-4. For each environment created above, add the following [environment variables][GitHub variables]:
+5. For each environment created above, add the following [environment variables][GitHub variables]:
 
    Variable                  | Description
    ------------------------- | -----------
@@ -75,7 +87,7 @@ With your resources provisioned, you can set up [OpenID Connect][OIDC] to deploy
    azd env get-value AZURE_STORAGE_STAGING_CONTAINER | gh variable set --env staging AZURE_STORAGE_CONTAINER
    ```
 
-5. Define the following repository variable:
+6. Define the following repository variable:
 
    Variable            | Description
    ------------------- | -----------
