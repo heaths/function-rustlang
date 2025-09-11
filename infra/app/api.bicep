@@ -5,6 +5,7 @@
 param name string
 param location string = resourceGroup().location
 param tags object = {}
+param principalId string
 param storageAccountType string
 
 var functionExtensionVersion = '~4'
@@ -19,10 +20,10 @@ var siteConfig = {
   linuxFxVersion: ''
   minTlsVersion: '1.2'
 }
-var storageConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storage.name};AccountKey=${storage.listKeys().keys[0].value};EndpointSuffix=core.windows.net'
+var storageName = '${name}${resourceToken}'
 
-resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = {
-  name: substring('${name}${resourceToken}', 0, 24)
+resource storage 'Microsoft.Storage/storageAccounts@2025-01-01' = {
+  name: substring(storageName, 0, min(length(storageName), 24))
   location: location
   tags: tags
   sku: {
@@ -32,12 +33,58 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   properties: {
     defaultToOAuthAuthentication: true
     minimumTlsVersion: 'TLS1_2'
+    publicNetworkAccess: 'Enabled'
     supportsHttpsTrafficOnly: true
+  }
+
+  resource blob 'blobServices' = {
+    name: 'default'
+
+    resource production 'containers' = {
+      name: 'production'
+      properties: {
+        publicAccess: 'None'
+      }
+    }
+
+    resource staging 'containers' = {
+      name: 'staging'
+      properties: {
+        publicAccess: 'None'
+      }
+    }
   }
 }
 
-resource plan 'Microsoft.Web/serverfarms@2023-12-01' = {
-  name: 'asp-${name}-${resourceToken}'
+var blobDataContributorDef = subscriptionResourceId(
+  'Microsoft.Authorization/roleDefinitions',
+  'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
+)
+var blobDataReaderDef = subscriptionResourceId(
+  'Microsoft.Authorization/roleDefinitions',
+  '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'
+)
+
+resource blobDataContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(name, func.name, principalId, blobDataContributorDef)
+  scope: storage
+  properties: {
+    principalId: principalId
+    roleDefinitionId: blobDataContributorDef
+  }
+}
+
+resource blobDataReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(name, func.name, 'SystemAssigned', blobDataReaderDef)
+  scope: storage
+  properties: {
+    principalId: func.identity.principalId
+    roleDefinitionId: blobDataReaderDef
+  }
+}
+
+resource plan 'Microsoft.Web/serverfarms@2024-11-01' = {
+  name: 'plan${name}${resourceToken}'
   location: location
   tags: tags
   sku: {
@@ -50,7 +97,7 @@ resource plan 'Microsoft.Web/serverfarms@2023-12-01' = {
   }
 }
 
-resource func 'Microsoft.Web/sites@2023-12-01' = {
+resource func 'Microsoft.Web/sites@2024-11-01' = {
   name: name
   location: location
   tags: tags
@@ -71,89 +118,76 @@ resource func 'Microsoft.Web/sites@2023-12-01' = {
           value: functionRuntime
         }
         {
-          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
-          value: storageConnectionString
-        }
-        {
-          name: 'WEBSITE_CONTENTSHARE'
-          value: '${name}${uniqueString(storage.name, storage.location)}'
-        }
-        {
-          name: 'AzureWebJobsStorage'
-          value: storageConnectionString
+          name: 'WEBSITE_RUN_FROM_PACKAGE'
+          value: uri(storage.properties.primaryEndpoints.blob, '${storage::blob::production.name}/deploy.zip')
         }
       ]
     })
     httpsOnly: true
   }
 
-  resource ftp 'basicPublishingCredentialsPolicies' = {
+  resource funcFtp 'basicPublishingCredentialsPolicies' = {
     name: 'ftp'
     properties: {
       allow: false
     }
   }
 
-  resource scm 'basicPublishingCredentialsPolicies' = {
+  resource funcScm 'basicPublishingCredentialsPolicies' = {
     name: 'scm'
     properties: {
       allow: false
     }
   }
-}
-resource slot 'Microsoft.Web/sites/slots@2023-12-01' = {
-  name: 'staging'
-  location: location
-  parent: func
-  properties: {
-    serverFarmId: plan.id
-    siteConfig: union(siteConfig, {
-      appSettings: [
-        {
-          name: 'FUNCTIONS_EXTENSION_VERSION'
-          value: functionExtensionVersion
-        }
-        {
-          name: 'FUNCTIONS_WORKER_RUNTIME'
-          value: functionRuntime
-        }
-        {
-          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
-          value: storageConnectionString
-        }
-        {
-          name: 'WEBSITE_CONTENTSHARE'
-          value: '${name}staging${uniqueString(storage.name, storage.location)}'
-        }
-        {
-          name: 'AzureWebJobsStorage'
-          value: storageConnectionString
-        }
-      ]
-    })
-    httpsOnly: true
-  }
 
-  resource ftpSlot 'basicPublishingCredentialsPolicies' = {
-    name: 'ftp'
+  resource slot 'slots' = {
+    name: 'staging'
+    location: location
     properties: {
-      allow: false
+      serverFarmId: plan.id
+      siteConfig: union(siteConfig, {
+        appSettings: [
+          {
+            name: 'FUNCTIONS_EXTENSION_VERSION'
+            value: functionExtensionVersion
+          }
+          {
+            name: 'FUNCTIONS_WORKER_RUNTIME'
+            value: functionRuntime
+          }
+          {
+            name: 'WEBSITE_RUN_FROM_PACKAGE'
+            value: uri(storage.properties.primaryEndpoints.blob, '${storage::blob::staging.name}/deploy.zip')
+          }
+        ]
+      })
+      httpsOnly: true
     }
-  }
 
-  resource scmSlot 'basicPublishingCredentialsPolicies' = {
-    name: 'scm'
-    properties: {
-      allow: false
+    resource slotFtp 'basicPublishingCredentialsPolicies' = {
+      name: 'ftp'
+      properties: {
+        allow: false
+      }
+    }
+
+    resource slotScm 'basicPublishingCredentialsPolicies' = {
+      name: 'scm'
+      properties: {
+        allow: false
+      }
     }
   }
 }
 
+output AZURE_STORAGE_URL string = storage.properties.primaryEndpoints.blob
 output func object = {
   name: func.name
+  container: storage::blob::production.name
   url: 'https://${func.properties.defaultHostName}'
 }
 output slot object = {
-  name: slot.name
-  url: 'https://${slot.properties.defaultHostName}'
+  name: func::slot.name
+  container: storage::blob::staging.name
+  url: 'https://${func::slot.properties.defaultHostName}'
 }

@@ -7,6 +7,7 @@ You can [develop Azure Functions using Rust](https://learn.microsoft.com/azure/a
 * [Azure Developer CLI][azd]
 * [Rust](https://www.rust-lang.org) 1.82 or newer
 * (Optional) [Azure Functions CLI][func]
+* (Optional) [GitHub CLI]
 
 ## Deployment
 
@@ -36,7 +37,8 @@ We'll create two environments: "staging" and "production" to match our provision
 With your resources provisioned, you can set up [OpenID Connect][OIDC] to deploy to staging and production environments:
 
 1. [Register an application](https://learn.microsoft.com/entra/identity-platform/howto-create-service-principal-portal) to log in from GitHub Actions. You can leave the redirect URL blank.
-2. [Harden access](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect#configuring-the-oidc-trust-with-the-cloud) when adding new client secrets:
+
+2. [Harden access](https://docs.github.com/actions/concepts/security/openid-connect#configuring-the-oidc-trust-with-the-cloud) when adding new client secrets:
    1. Under **Managed**, click on **Certificates and secrets**.
    2. Click **Federated credentials**.
    3. Click **Add credential**.
@@ -45,6 +47,7 @@ With your resources provisioned, you can set up [OpenID Connect][OIDC] to deploy
    6. Name your credential to identify which environment will require it e.g., "staging".
    7. Click **Add**.
    8. Repeat the previous steps for the "production" environment.
+
 3. For each environment created above, add the following [environment secrets][GitHub secrets]:
 
    Variable                | Description
@@ -54,7 +57,35 @@ With your resources provisioned, you can set up [OpenID Connect][OIDC] to deploy
    `AZURE_CLIENT_ID`       | The client ID of the application.
 
    Alternatively, you could set these once as repository secrets if they have the same value. This example demonstrates configuration in case different environments are in different subscriptions.
-4. Add [GitHub secrets] for your provisioned `AZURE_RESOURCE_GROUP` and `AZURE_FUNCTIONAPP_NAME`. These were output when you ran `azd provision`.
+
+4. For each environment created above, add the following [environment variables][GitHub variables]:
+
+   Variable                  | Description
+   ------------------------- | -----------
+   `AZURE_FUNCTIONAPP_URL`   | The URL of the function app or slot.
+   `AZURE_STORAGE_CONTAINER` | The name of the Storage blob container to use for the function app or slot.
+
+   Using the [GitHub CLI], you can set these like so:
+
+   ```sh
+   azd env get-value AZURE_FUNCTIONAPP_URL | gh variable set --env production AZURE_FUNCTIONAPP_URL
+   azd env get-value AZURE_STORAGE_CONTAINER | gh variable set --env production AZURE_STORAGE_CONTAINER
+
+   azd env get-value AZURE_FUNCTIONAPP_STAGING_URL | gh variable set --env staging AZURE_FUNCTIONAPP_URL
+   azd env get-value AZURE_STORAGE_STAGING_CONTAINER | gh variable set --env staging AZURE_STORAGE_CONTAINER
+   ```
+
+5. Define the following repository variable:
+
+   Variable            | Description
+   ------------------- | -----------
+   `AZURE_STORAGE_URL` | The Storage blob endpoint URL.
+
+   Using the [GitHub CLI], you can set these like so:
+
+   ```sh
+   azd env get-value AZURE_STORAGE_URL | gh variable set AZURE_STORAGE_URL
+   ```
 
 Now when you merge to `main` the Azure Functions app will deploy first to your staging environment, test that the application is running and responds with the expected text, then deploys to your production environment.
 
@@ -92,7 +123,7 @@ If you would like to better understand the process to adapt to your situation, y
 
    ```bash
    eval $(azd env get-values) # or source from .env file for environment under .azure/
-   az functionapp deployment source config-zip -g $AZURE_RESOURCE_GROUP -n $AZURE_FUNCTIONAPP_NAME --src deploy.zip
+   az storage blob upload --blob-endpoint "$AZURE_STORAGE_URL" --container-name "$AZURE_STORAGE_CONTAINER" --auth-mode login --file deploy.zip --overwrite
    ```
 
 5. You can now test that the function was successfully deployed:
@@ -112,5 +143,7 @@ azd down
 [azd]: https://aka.ms/azure-dev
 [func]: https://learn.microsoft.com/azure/azure-functions/functions-run-local
 [GitHub Actions]: https://docs.github.com/actions
-[GitHub secrets]: https://docs.github.com/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions
-[OIDC]: https://docs.github.com/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-azure
+[GitHub CLI]: https://github.com/cli/cli
+[GitHub secrets]: https://docs.github.com/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets
+[GitHub variables]: https://docs.github.com/actions/how-tos/write-workflows/choose-what-workflows-do/use-variables
+[OIDC]: https://docs.github.com/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-azure
