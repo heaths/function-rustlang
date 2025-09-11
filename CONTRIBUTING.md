@@ -32,4 +32,5 @@ You can run `curl` against the default `http://localhost:7071/api/hello` endpoin
 
 ```bash
 cargo run --example client
+cargo run --example client -- --name Azure
 ```

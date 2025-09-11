@@ -10,6 +10,11 @@ param environmentName string
 
 @minLength(1)
 @description('Primary location for all resources')
+@metadata({
+  azd: {
+    type: 'location'
+  }
+})
 param location string
 
 @description('Override the name of the resource group')
@@ -52,10 +57,14 @@ module api './app/api.bicep' = {
     name: environmentName
     location: location
     tags: allTags
+    principalId: principalId
     storageAccountType: storageAccountType
   }
 }
 
+output AZURE_STORAGE_URL string = api.outputs.AZURE_STORAGE_URL
+output AZURE_STORAGE_CONTAINER string = api.outputs.func.container
+output AZURE_STORAGE_STAGING_CONTAINER string = api.outputs.slot.container
 output AZURE_FUNCTIONAPP_NAME string = api.outputs.func.name
 output AZURE_FUNCTIONAPP_URL string = api.outputs.func.url
 output AZURE_FUNCTIONAPP_STAGING_NAME string = api.outputs.slot.name
