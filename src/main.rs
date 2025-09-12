@@ -2,7 +2,7 @@
 // Licensed under the MIT License. See LICENSE.txt in the project root for license information.
 
 use handler::{default_port, hello};
-use std::{collections::HashMap, net::Ipv4Addr};
+use std::{collections::HashMap, env, net::Ipv4Addr};
 use warp::{http::Response, Filter};
 
 #[tokio::main]
@@ -15,6 +15,7 @@ async fn main() {
             let body = hello(p.get("name").map(|name| name.as_str()));
             Response::builder()
                 .header("content-type", "text/plain")
+                .header("x-powered-by", format!("rustc/{}", env!("RUSTC_VERSION")))
                 .body(body)
         });
 
